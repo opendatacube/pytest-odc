@@ -60,3 +60,66 @@ Included with ODC Core (soon!) are some [pytest](https://docs.pytest.org/) [fixt
 
 
 ## How it Works
+pytest-odc
+==========
+
+[![PyPI version](https://img.shields.io/pypi/v/pytest-odc.svg)](https://pypi.org/project/pytest-odc)
+
+[![Python versions](https://img.shields.io/pypi/pyversions/pytest-odc.svg)](https://pypi.org/project/pytest-odc)
+
+[![See Build Status on AppVeyor](https://ci.appveyor.com/api/projects/status/github/omad/pytest-odc?branch=master)](https://ci.appveyor.com/project/omad/pytest-odc/branch/master)
+
+A pytest plugin for simplifying ODC database tests
+
+------------------------------------------------------------------------
+
+This [pytest](https://github.com/pytest-dev/pytest) plugin was generated
+with [Cookiecutter](https://github.com/audreyr/cookiecutter) along with
+[\@hackebrot](https://github.com/hackebrot)\'s
+[cookiecutter](https://github.com/pytest-dev/cookiecutter)
+template.
+
+Features
+--------
+
+-   TODO
+
+Requirements
+------------
+
+-   TODO
+
+Installation
+------------
+
+You can install \"pytest-odc\" via
+[pip](https://pypi.org/project/pip/) from
+[PyPI](https://pypi.org/project):
+
+    $ pip install pytest-odc
+
+Usage
+-----
+
+-   TODO
+
+Contributing
+------------
+
+Contributions are very welcome. Tests can be run with
+[tox](https://tox.readthedocs.io/en/latest/), please ensure the coverage
+at least stays the same before you submit a pull request.
+
+License
+-------
+
+Distributed under the terms of the [Apache Software License
+2.0](http://www.apache.org/licenses/LICENSE-2.0) license,
+\"pytest-odc\" is free and open source software
+
+Issues
+------
+
+If you encounter any problems, please [file an
+issue](https://github.com/omad/pytest-odc/issues) along
+with a detailed description.
