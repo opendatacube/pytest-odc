@@ -22,9 +22,9 @@ setup(
     url='https://github.com/opendatacube/pytest-odc',
     description='A pytest plugin for simplifying ODC database tests',
     long_description=read('README.md'),
-    py_modules=['odc'],
+    packages=['odc.testing'],
     python_requires='>=3.5',
-    install_requires=['pytest>=3.5.0'],
+    install_requires=['pytest>=3.5.0', 'docker'],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Framework :: Pytest',
@@ -44,7 +44,7 @@ setup(
     ],
     entry_points={
         'pytest11': [
-            'odc-pytest-plugin = odc.testing.odc_pytest_plugin',
+            'odc-pytest-database = odc.testing.database',
         ],
     },
 )
