@@ -1,22 +1,33 @@
-# Infrastructure Testing with ODC
+[![PyPI version](https://img.shields.io/pypi/v/pytest-odc.svg)](https://pypi.org/project/pytest-odc)
 
-Anyone writing applications using an ODC Database will need to be able to repeatedly test their code. This requires an ODC Database to contain a known set of data, every time the test is done.
+[![Python versions](https://img.shields.io/pypi/pyversions/pytest-odc.svg)](https://pypi.org/project/pytest-odc)
+
+# pytest-odc
+
+A [pytest](https://docs.pytest.org/) [plugin](https://docs.pytest.org/en/7.1.x/how-to/plugins.html) for simplifying [Open Datacube](https://www.opendatacube.org/) database tests.
+
+# Testing Open Datacube Applications
+
+Anyone writing applications using an ODC Database needs to be able to test their code. This requires an ODC Database containing a known set of data.
 
 There's two challenges here:
-  - Having an ODC Database requires a private database in a PostgreSQL server somewhere, which is a challenge to set up.
-  - The database needs to be wiped and reset every time a test is run, to make it repeatable.
+
+- ODC requires a PostgreSQL server accessible anywhere test are run, which can be challenging to set up.
+- The database should be reset every time a test is run, to make it possible to repeatedly run tests.
 
 ## The Solution
 
-Included with ODC Core (soon!) are some [pytest](https://docs.pytest.org/) [fixtures](https://docs.pytest.org/en/stable/explanation/fixtures.html), which make it easy to write test code against an ODC Database.
+This package provides reusable [pytest](https://docs.pytest.org/) [fixtures](https://docs.pytest.org/en/stable/explanation/fixtures.html), to make it easy to write test code against an ODC Database. It handles starting and stopping a temporary PostgreSQL server using Docker, initialising it for ODC use, and loading/wiping sets of test data on a per test module basis.
 
 ### Steps to Create New Tests
 
-1. Copy the [ODC Test Plugin](https://github.com/opendatacube/datacube-explorer/blob/develop/cubedash/testutils/database.py) into your application code.
+1. Install the [ODC Test Plugin](https://github.com/opendatacube/datacube-explorer/blob/develop/cubedash/testutils/database.py) into your Python environment.
+   
+   `pip install pytest-odc`
 
-2. Create at least one each of a Metadata Type, Product and Dataset YAML file. These will be loaded into an ODC Database before your test code runs.
+2. Create at least one each of an ODC [Metadata Type](https://datacube-core.readthedocs.io/en/latest/installation/metadata-types.html), [Product](https://datacube-core.readthedocs.io/en/latest/installation/product-definitions.html) and [Dataset](https://datacube-core.readthedocs.io/en/latest/installation/dataset-documents.html) YAML files. These will be loaded into an ODC Database before your test code runs.
 
-3. Create a [pytest](https://docs.pytest.org/) Python file using this template:
+3. Create a [pytest](https://docs.pytest.org/) file using this template:
 
     ```python
     """
@@ -39,69 +50,38 @@ Included with ODC Core (soon!) are some [pytest](https://docs.pytest.org/) [fixt
         assert len(my_datasets) == 3
     ```
 
-4. Install extra test dependencies.
+4. Run your new tests.
 
-   ```console
-   $ pip install docker
-   ```
+       pytest tests/
 
-5. Create and activate a local environment.
+# More Details / How it Works
 
-   ```console
-   $ mamba create -p ./testenv python=3.10 datacube pytest docker-py
-   $ mamba activate /home/omad/dev/tmp-odc-testing/testenv
-   ```
-
-   Note: the conda-forge package is called `docker-py`, the PyPI package is simply `docker`.
-
-6. Run the example tests
-
-    pytest tests/
+The four provided pytest fixtures compose together to ensure an ODC Database is available and preloaded with test data for each test module.
 
 
-## How it Works
-pytest-odc
-==========
+## Fixtures
 
-[![PyPI version](https://img.shields.io/pypi/v/pytest-odc.svg)](https://pypi.org/project/pytest-odc)
+### `postgresql_server`
 
-[![Python versions](https://img.shields.io/pypi/pyversions/pytest-odc.svg)](https://pypi.org/project/pytest-odc)
+This fixture either:
 
-[![See Build Status on AppVeyor](https://ci.appveyor.com/api/projects/status/github/omad/pytest-odc?branch=master)](https://ci.appveyor.com/project/omad/pytest-odc/branch/master)
+- Runs a temporary PostgreSQL server using Docker
+- Or checks that a test PostgreSQL server is already available via the `ODC_TEST_DB_URL` environment variable.
 
-A pytest plugin for simplifying ODC database tests
+### `odc_db`
 
-------------------------------------------------------------------------
+This fixture provides a `datacube.Datacube()` object configured to connect to the temporary test database. 
 
-This [pytest](https://github.com/pytest-dev/pytest) plugin was generated
-with [Cookiecutter](https://github.com/audreyr/cookiecutter) along with
-[\@hackebrot](https://github.com/hackebrot)\'s
-[cookiecutter](https://github.com/pytest-dev/cookiecutter)
-template.
+It can be added to the parameters for a test for getting access to the temporary database.
 
-Features
---------
+### `odc_test_db`
 
--   TODO
+This fixture creates all the ODC Database tables.
 
-Requirements
-------------
+### `auto_odc_db`
 
--   TODO
+This fixture should be used as a `pytestmark autoload`, marking the test module as having variables named `METADATA_TYPES`, `PRODUCTS` and `DATASETS` being lists of files to load into the test database.
 
-Installation
-------------
-
-You can install \"pytest-odc\" via
-[pip](https://pypi.org/project/pip/) from
-[PyPI](https://pypi.org/project):
-
-    $ pip install pytest-odc
-
-Usage
------
-
--   TODO
 
 Contributing
 ------------
@@ -123,3 +103,13 @@ Issues
 If you encounter any problems, please [file an
 issue](https://github.com/omad/pytest-odc/issues) along
 with a detailed description.
+
+Release Process
+---------------
+
+```
+rm -rf dist/
+python -m build
+twine upload --repository testpypi dist/*
+twine upload dist/*
+```
