@@ -31,11 +31,18 @@ def postgresql_server():
 
     # If we're running inside docker already, don't attempt to start a container!
     # Hopefully we're using the `with-test-db` script and can use *that* database.
-    if Path("/.dockerenv").exists() and (
-        "DATACUBE_DB_URL" in os.environ or "DB_DATABASE" in os.environ
-    ):
+    if Path("/.dockerenv").exists():
+        if "DATACUBE_DB_URL" in os.environ or "DB_DATABASE" in os.environ:
+            yield GET_DB_FROM_ENV
+        else:
+            raise Exception('pytest-odc: Running within docker but no ODC Database Connection setup')
+
+    elif "ODC_TEST_DB_URL" in os.environ:
+        os.environ['DATACUBE_DB_URL'] = os.environ['ODC_TEST_DB_URL']
         yield GET_DB_FROM_ENV
     else:
+        # We're not inside docker, and we don't have an environment variable configured DB server
+        # So use docker to spin up a temporary (for the duration of the test run) postgres server.
         client = docker.from_env()
         container = client.containers.run(
             "postgis/postgis:14-3.3-alpine",
@@ -49,9 +56,12 @@ def postgresql_server():
             ports={"5432/tcp": None},
         )
         try:
+            # Wait for the container to start
             while not container.attrs["NetworkSettings"]["Ports"]:
                 time.sleep(1)
                 container.reload()
+
+            # Find the local port that's forwarded into the container
             host_port = container.attrs["NetworkSettings"]["Ports"]["5432/tcp"][0][
                 "HostPort"
             ]
@@ -137,14 +147,15 @@ def odc_test_db(odc_db, request):
     # during testing, and need any performance gains we can get.
 
     engine = index.datasets._db._engine
-    for table in [
-        "agdc.dataset_location",
-        "agdc.dataset_source",
-        "agdc.dataset",
-        "agdc.dataset_type",
-        "agdc.metadata_type",
-    ]:
-        engine.execute(f"""alter table {table} set unlogged;""")
+    with engine.begin() as connection:
+        for table in [
+            "agdc.dataset_location",
+            "agdc.dataset_source",
+            "agdc.dataset",
+            "agdc.dataset_type",
+            "agdc.metadata_type",
+        ]:
+            connection.exec_driver_sql(f"""alter table {table} set unlogged;""")
 
     yield dc
 
