@@ -218,9 +218,8 @@ def auto_odc_db(odc_test_db, request):
         for filename in request.module.DATASETS:
             filename = data_path / filename
             for _, doc in read_documents(filename):
-                label = doc["ga_label"] if ("ga_label" in doc) else doc["id"]
                 dataset, err = create_dataset(
-                    doc, f"file://example.com/test_dataset/{label}"
+                    doc, filename.absolute().as_uri()
                 )
                 assert dataset is not None, err
                 created = odc_test_db.index.datasets.add(dataset)
